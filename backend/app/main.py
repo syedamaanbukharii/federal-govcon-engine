@@ -152,7 +152,37 @@ def run_discovery(db: Session = Depends(get_db)):
     
     agent = DiscoveryAgent(db)
     try:
-        discovered_count = agent.run_discovery(limit=10) # Pull top 10 recent awards
+        discovered_count = agent.run_discovery(limit=10)
         return {"message": f"Discovery complete. Found {discovered_count} new active federal contractors."}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.post("/api/run-validation")
+def run_validation(db: Session = Depends(get_db)):
+    from .agents.validation_agent import ValidationAgent
+    
+    agent = ValidationAgent(db)
+    try:
+        agent.process_unvalidated_companies()
+        return {"message": "AI Entity Resolution and Validation complete."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+from pydantic import BaseModel
+
+class SalesNavRequest(BaseModel):
+    company_name: str
+    service_line: str = "Software Development"
+
+@app.post("/api/sales-nav-search")
+def generate_sales_nav_search(request: SalesNavRequest):
+    from .agents.sales_nav_agent import SalesNavigatorAgent
+    agent = SalesNavigatorAgent()
+    
+    boolean_string = agent.generate_boolean_string(request.company_name, request.service_line)
+    url = agent.generate_sales_nav_url(request.company_name, request.service_line)
+    
+    return {
+        "boolean_string": boolean_string,
+        "url": url
+    }

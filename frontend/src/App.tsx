@@ -42,10 +42,25 @@ function App() {
       });
   }, []);
 
-  const generateSalesNavString = (companyName: string) => {
-    const booleanString = `"${companyName}" AND (CEO OR President OR Founder OR "Business Development")`;
-    navigator.clipboard.writeText(booleanString);
-    alert(`Copied Sales Navigator Search String:\n\n${booleanString}`);
+  const generateSalesNavString = async (companyName: string) => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/sales-nav-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({ company_name: companyName, service_line: "Software Development" })
+      });
+      const result = await response.json();
+      
+      navigator.clipboard.writeText(result.boolean_string);
+      window.open(result.url, '_blank');
+      
+      alert(`Copied Search String to Clipboard!\n\nOpening Sales Navigator Lead Search for ${companyName}...`);
+    } catch (e) {
+      console.error(e);
+      alert('Failed to generate Sales Navigator search.');
+    }
   };
 
   const handleRunDiscovery = async () => {
@@ -125,11 +140,27 @@ function App() {
         <div className="bg-white shadow-sm rounded-lg border border-slate-200 overflow-hidden">
           <div className="px-4 py-5 sm:px-6 flex justify-between items-center bg-slate-50 border-b border-slate-200">
             <h3 className="text-lg leading-6 font-medium text-slate-900">Prioritized Targets</h3>
-            <button 
-              onClick={handleRunDiscovery}
-              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
-              Run Discovery Agent
-            </button>
+            <div className="flex gap-2">
+              <button 
+                onClick={async () => {
+                  try {
+                    const response = await fetch('http://127.0.0.1:8000/api/run-validation', { method: 'POST' });
+                    const result = await response.json();
+                    alert(result.message);
+                    window.location.reload();
+                  } catch (e) {
+                    alert('Validation failed');
+                  }
+                }}
+                className="inline-flex items-center px-4 py-2 border border-slate-300 text-sm font-medium rounded-md shadow-sm text-slate-700 bg-white hover:bg-slate-50">
+                Run AI Validation
+              </button>
+              <button 
+                onClick={handleRunDiscovery}
+                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+                Run Discovery Agent
+              </button>
+            </div>
           </div>
           
           <div className="overflow-x-auto">
