@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# Environment
+.env
+.env.*
+.venv/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# Database
+*.sqlite
+*.sqlite3
+*.db
+govcon.db
+backend/govcon.db
+frontend/govcon.db
+
+# CSVs & Excel
+*.csv
+*.xlsx
+*.xls
+active_federal_it_leads.csv
+final_active_federal_it_leads.csv
+top_10_digital_services_govcon_leads.csv
+top_10_new_verified_govcon_leads.csv
+top_8_verified_govcon_leads.csv
+
+# Frontend / Node
+node_modules/
+dist/
+dist-ssr/
+*.local
+.npm
+.eslintcache
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# IDE / OS
+.vscode/
+.idea/
+*.swp
+.DS_Store
+Thumbs.db
