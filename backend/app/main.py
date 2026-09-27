@@ -1,4 +1,4 @@
-from fastapi import FastAPI, Depends, HTTPException
+from fastapi import FastAPI, Depends, HTTPException, BackgroundTasks
 from fastapi.middleware.cors import CORSMiddleware
 from sqlalchemy.orm import Session
 from typing import List
@@ -57,6 +57,8 @@ def get_dashboard_data(db: Session = Depends(get_db)):
             "company_name": c.company_name,
             "status": c.status,
             "federal_activity_status": c.federal_activity_status,
+            "ai_reasoning": c.ai_reasoning,
+            "is_joint_venture": c.is_joint_venture,
             "contact_name": contact_name,
             "contact_title": contact_title,
             "email": email,
@@ -158,15 +160,19 @@ def run_discovery(db: Session = Depends(get_db)):
         raise HTTPException(status_code=500, detail=str(e))
 
 @app.post("/api/run-validation")
-def run_validation(db: Session = Depends(get_db)):
+def run_validation(background_tasks: BackgroundTasks, db: Session = Depends(get_db)):
     from .agents.validation_agent import ValidationAgent
     
     agent = ValidationAgent(db)
-    try:
-        agent.process_unvalidated_companies()
-        return {"message": "AI Entity Resolution and Validation complete."}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+    
+    def process_task():
+        try:
+            agent.process_unvalidated_companies()
+        except Exception as e:
+            print(f"Validation Task Failed: {e}")
+
+    background_tasks.add_task(process_task)
+    return {"message": "AI Entity Resolution and Validation started in the background. Please wait 1-2 minutes and refresh."}
 
 from pydantic import BaseModel
 

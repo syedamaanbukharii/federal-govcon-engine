@@ -14,6 +14,8 @@ class Company(Base):
     status = Column(String) # ACTIVE, WATCH, EXCLUDE
     company_health = Column(String, nullable=True) # HEALTHY, WATCH, EXCLUDE
     federal_activity_status = Column(String, nullable=True)
+    ai_reasoning = Column(String, nullable=True)
+    is_joint_venture = Column(Boolean, default=False)
     last_verified_at = Column(DateTime, default=datetime.utcnow)
     created_at = Column(DateTime, default=datetime.utcnow)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)

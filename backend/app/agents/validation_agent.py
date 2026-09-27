@@ -79,9 +79,15 @@ class ValidationAgent:
                 
             if not resolution.is_valid_contractor:
                 company.status = 'EXCLUDE'
-                company.federal_activity_status = f'Excluded by AI: {resolution.reasoning}'
+                company.company_health = 'EXCLUDE'
+                company.federal_activity_status = f'Excluded by AI'
             else:
-                # Update with the cleaned, resolved name
                 company.company_name = resolution.normalized_company_name
+                if resolution.parent_company_name:
+                    company.parent_company = resolution.parent_company_name
+            
+            # Audit the reasoning
+            company.ai_reasoning = resolution.reasoning
+            company.is_joint_venture = resolution.is_joint_venture
                 
             self.db.commit()

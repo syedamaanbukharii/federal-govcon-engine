@@ -12,6 +12,8 @@ interface Company {
   company_name: string;
   status: string;
   federal_activity_status: string;
+  ai_reasoning?: string;
+  is_joint_venture?: boolean;
   contact_name: string;
   contact_title: string;
   email: string;
@@ -185,9 +187,18 @@ function App() {
                 ) : data && data.recent_accounts.length > 0 ? (
                   data.recent_accounts.map((company) => (
                     <tr key={company.id} className="hover:bg-slate-50">
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-slate-900">{company.company_name}</div>
-                        <div className="text-xs text-slate-500">ID: {company.id}</div>
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-medium text-slate-900 flex items-center gap-2">
+                          {company.company_name}
+                          {company.is_joint_venture && (
+                            <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-purple-100 text-purple-800">
+                              Joint Venture
+                            </span>
+                          )}
+                        </div>
+                        <div className="text-xs text-slate-500 max-w-xs truncate" title={company.ai_reasoning}>
+                          {company.ai_reasoning || `ID: ${company.id}`}
+                        </div>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
                         <span className="px-2 inline-flex text-xs leading-5 font-semibold rounded-full bg-emerald-100 text-emerald-800">
