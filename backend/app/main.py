@@ -145,3 +145,14 @@ def seed_from_csv(db: Session = Depends(get_db)):
                 
     db.commit()
     return {"message": f"Successfully seeded {count} companies and leads from verified CSVs."}
+
+@app.post("/api/run-discovery")
+def run_discovery(db: Session = Depends(get_db)):
+    from .agents.discovery_agent import DiscoveryAgent
+    
+    agent = DiscoveryAgent(db)
+    try:
+        discovered_count = agent.run_discovery(limit=10) # Pull top 10 recent awards
+        return {"message": f"Discovery complete. Found {discovered_count} new active federal contractors."}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))

@@ -48,6 +48,21 @@ function App() {
     alert(`Copied Sales Navigator Search String:\n\n${booleanString}`);
   };
 
+  const handleRunDiscovery = async () => {
+    try {
+      const response = await fetch('http://127.0.0.1:8000/api/run-discovery', {
+        method: 'POST'
+      });
+      const result = await response.json();
+      alert(result.message);
+      // Reload dashboard data
+      window.location.reload();
+    } catch (err) {
+      console.error(err);
+      alert("Failed to run discovery agent.");
+    }
+  };
+
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900">
       {/* Navigation */}
@@ -110,7 +125,9 @@ function App() {
         <div className="bg-white shadow-sm rounded-lg border border-slate-200 overflow-hidden">
           <div className="px-4 py-5 sm:px-6 flex justify-between items-center bg-slate-50 border-b border-slate-200">
             <h3 className="text-lg leading-6 font-medium text-slate-900">Prioritized Targets</h3>
-            <button className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
+            <button 
+              onClick={handleRunDiscovery}
+              className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700">
               Run Discovery Agent
             </button>
           </div>
