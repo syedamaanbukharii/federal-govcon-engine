@@ -219,12 +219,35 @@ function App() {
                       <td className="px-6 py-4">
                         <div className="text-xs text-slate-700 max-w-xs truncate" title={company.naics}>{company.naics}</div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                      <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium flex gap-2 justify-end">
                         <button 
                           onClick={() => generateSalesNavString(company.company_name)}
                           className="text-blue-600 hover:text-blue-900 bg-blue-50 px-3 py-1 rounded border border-blue-200"
                         >
                           Sales Nav Search
+                        </button>
+                        <button 
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('http://127.0.0.1:8000/api/generate-outreach', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ company_id: company.id, service_line: "Software Development", persona: "CTO" })
+                              });
+                              const result = await response.json();
+                              if (response.ok) {
+                                alert(`Subject: ${result.subject_line}\n\n${result.body}\n\n(Copied to clipboard!)`);
+                                navigator.clipboard.writeText(`Subject: ${result.subject_line}\n\n${result.body}`);
+                              } else {
+                                alert(`Error: ${result.detail}`);
+                              }
+                            } catch (e) {
+                              alert('Failed to connect to backend.');
+                            }
+                          }}
+                          className="text-emerald-600 hover:text-emerald-900 bg-emerald-50 px-3 py-1 rounded border border-emerald-200"
+                        >
+                          Draft Outreach
                         </button>
                       </td>
                     </tr>
