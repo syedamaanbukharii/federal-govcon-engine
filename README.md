@@ -1,57 +1,70 @@
-# Federal GovCon Lead Intelligence Engine
+# Federal GovCon Intelligence Engine
 
-A production-oriented CRM and intelligence engine designed specifically for Business Development teams targeting the **US Federal Government Contracting (GovCon)** market.
+![License](https://img.shields.io/badge/license-MIT-blue.svg)
+![Architecture](https://img.shields.io/badge/architecture-Microservices-success.svg)
+![AI Enabled](https://img.shields.io/badge/AI-Gemini%202.5-purple.svg)
 
-This system is built to identify, verify, and track active federal contractors that may have demand for:
-1. Proposal Writing / Support
-2. Recruitment / Staffing
-3. Software Development / Engineering Teams
+An autonomous, AI-driven intelligence engine designed to identify, resolve, and engage active US Federal Government contractors. 
 
-Unlike generic scrapers, this application prioritizes **current, evidence-backed federal activity** (via SAM.gov and USAspending integrations) and aggressively filters out stale, dead, or irrelevant companies to ensure absolute data accuracy for outbound campaigns.
+Rather than functioning as a standalone CRM, this engine operates as a "Data Clean Room" between public federal data sources (SAM.gov, USAspending) and your B2B sales pipeline, utilizing LLMs to deduplicate complex corporate structures and generate highly targeted outreach.
 
-## 🚀 Key Features
-* **Federal Activity Verification:** Cross-references company status to ensure they are actively bidding or winning federal contracts.
-* **Intelligent Entity Deduplication:** Automatically cleans and deduplicates complex GovCon entity structures, Joint Ventures (JVs), and acquired subsidiaries.
-* **Targeted Executive Discovery:** Pinpoints the precise decision-makers (CEOs, Presidents, Founders, VP of BD).
-* **Human-in-the-Loop CRM Dashboard:** Sleek React UI with one-click "Sales Navigator" boolean search generation for BD representatives to conduct final validation.
+---
 
-## 🛠 Tech Stack
-* **Frontend:** React, TypeScript, Vite, Tailwind CSS v4
-* **Backend:** FastAPI, Python, SQLAlchemy, SQLite
-* **Data Sources:** SAM.gov API, USAspending
-* **AI/Agents:** Architecture designed for LangChain/Agentic workflows (Discovery, Enrichment, Deduplication).
+## ⚡ Core Capabilities
 
-## 📦 Local Setup Instructions
+- **Automated Data Ingestion:** Hooks into USAspending V2 APIs to continuously discover entities winning new IT and Professional Services contracts.
+- **AI Entity Resolution (The Moat):** Utilizes Gemini 2.5 Flash to automatically clean raw federal data, identifying Joint Ventures (JVs), resolving subsidiaries to their parent companies, and filtering out non-commercial entities.
+- **Targeted Decision-Maker Discovery:** Generates precise, URL-encoded Boolean search strings for LinkedIn Sales Navigator to instantly surface CTOs, VPs of Capture, or HR Directors at target agencies.
+- **Agentic Cold Outreach:** Context-aware LLM agents draft punchy, highly personalized cold emails referencing the target's specific, recently awarded federal contracts.
 
-### 1. Backend Setup
-Navigate to the `backend` directory, install dependencies, and start the FastAPI server.
+---
 
+## 🏗️ Architecture & Tech Stack
+
+This project is architected for a multi-tenant SaaS environment, currently utilizing a containerized microservices approach.
+
+*   **Backend:** Python 3.12, FastAPI, SQLAlchemy, Google GenAI SDK
+*   **Frontend:** React, TypeScript, Vite, Tailwind CSS
+*   **Infrastructure (Drafted):** AWS Aurora Serverless (PostgreSQL + pgvector), AWS Fargate (ECS)
+*   **Containerization:** Docker & Docker Compose
+
+---
+
+## 🚀 Getting Started
+
+This repository includes a robust DevOps foundation. You can spin up the entire intelligence engine locally using Docker.
+
+### Prerequisites
+*   [Docker Desktop](https://www.docker.com/products/docker-desktop) installed and running.
+*   A Google Gemini API Key.
+
+### 1. Environment Configuration
+Copy the sample environment file and add your API keys:
 ```bash
-cd backend
-python -m venv venv
-source venv/Scripts/activate  # On Windows
-pip install -r requirements.txt
-
-# Start the API server
-uvicorn app.main:app --reload --port 8000
+cp .env.example .env
 ```
+Ensure your `GEMINI_API_KEY` is populated.
 
-### 2. Frontend Setup
-In a new terminal window, navigate to the `frontend` directory and start the Vite development server.
-
+### 2. Launch the Engine
+Use the included `Makefile` to build and launch the containers:
 ```bash
-cd frontend
-npm install
-npm run dev
+make up
+```
+*The backend API will be available at `http://localhost:8000` and the React Dashboard at `http://localhost:80`.*
+
+### 3. Usage
+Navigate to the dashboard and utilize the agentic pipeline:
+1.  **Run Discovery:** Pulls the latest IT contract awards.
+2.  **Run AI Validation:** Cleans the data and flags Joint Ventures.
+3.  **Generate Outreach:** Drafts customized cold emails for your BD team.
+
+### Teardown
+To stop the containers and clean up resources:
+```bash
+make down
 ```
 
-### 3. Environment Variables
-Create a `.env` file in the root directory containing your API credentials:
+---
 
-```env
-SAM_GOV_API_KEY=your_api_key_here
-SAM_GOV_BASE_URL=https://api.sam.gov
-```
-
-## 🔒 Security
-Please ensure that you **do not commit your `.env` file, SQLite databases, or internal lead CSV sheets** to version control. They are actively ignored via the `.gitignore`.
+## 📄 License
+This project is proprietary and confidential. All rights reserved.
