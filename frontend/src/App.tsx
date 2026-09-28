@@ -249,6 +249,28 @@ function App() {
                         >
                           Draft Outreach
                         </button>
+                        <button 
+                          onClick={async () => {
+                            try {
+                              const response = await fetch('http://127.0.0.1:8000/api/sync-crm', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ company_id: company.id })
+                              });
+                              const result = await response.json();
+                              if (response.ok) {
+                                alert(`Success! Synced to HubSpot with ID: ${result.hubspot_id}`);
+                              } else {
+                                alert(`Error: ${result.detail}`);
+                              }
+                            } catch (e) {
+                              alert('Failed to connect to backend.');
+                            }
+                          }}
+                          className="text-orange-600 hover:text-orange-900 bg-orange-50 px-3 py-1 rounded border border-orange-200"
+                        >
+                          Sync CRM
+                        </button>
                       </td>
                     </tr>
                   ))

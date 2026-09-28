@@ -212,3 +212,20 @@ def generate_outreach(request: OutreachRequest, db: Session = Depends(get_db)):
         "subject_line": draft.subject_line,
         "body": draft.body
     }
+
+class SyncRequest(BaseModel):
+    company_id: int
+
+@app.post("/api/sync-crm")
+def sync_to_crm(request: SyncRequest, db: Session = Depends(get_db)):
+    import os
+    from .agents.hubspot_agent import HubSpotSyncAgent
+    
+    token = os.getenv("HUBSPOT_ACCESS_TOKEN")
+    agent = HubSpotSyncAgent(db, access_token=token)
+    
+    result = agent.sync_company(request.company_id)
+    if not result["success"]:
+        raise HTTPException(status_code=400, detail=result.get("error"))
+        
+    return {"message": "Successfully synced to HubSpot", "hubspot_id": result["hubspot_id"]}
