@@ -1,8 +1,8 @@
 import logging
-import os
+import asyncio
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from google import genai
+from google.antigravity import Agent, LocalAgentConfig
 from ..models import Company, FederalRecord
 
 logger = logging.getLogger(__name__)
@@ -17,21 +17,12 @@ class EntityResolutionResult(BaseModel):
 class ValidationAgent:
     def __init__(self, db: Session):
         self.db = db
-        # Assumes GEMINI_API_KEY is in environment
-        try:
-            self.client = genai.Client()
-        except Exception as e:
-            logger.warning(f"Failed to initialize Gemini Client. Check GEMINI_API_KEY. {e}")
-            self.client = None
 
-    def resolve_entity(self, raw_name: str, raw_description: str) -> EntityResolutionResult | None:
+    async def resolve_entity(self, raw_name: str, raw_description: str) -> EntityResolutionResult | None:
         """
-        Uses Gemini to clean, deduplicate, and resolve complex GovCon entity names 
+        Uses Google Antigravity to clean, deduplicate, and resolve complex GovCon entity names 
         (e.g., Joint Ventures, weird LLC suffixes, typos).
         """
-        if not self.client:
-            return None
-
         prompt = f"""
         You are an expert Federal Government Contracting (GovCon) entity resolution AI.
         Analyze this raw award data from USAspending:
@@ -46,22 +37,24 @@ class ValidationAgent:
         4. If it's a JV or subsidiary, identify the likely parent company or primary partner if obvious from the name.
         """
 
+        config = LocalAgentConfig(
+            model='gemini-2.5-flash',
+            response_schema=EntityResolutionResult,
+            temperature=0.1
+        )
+
         try:
-            response = self.client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=prompt,
-                config={
-                    'response_mime_type': 'application/json',
-                    'response_schema': EntityResolutionResult,
-                    'temperature': 0.1
-                },
-            )
-            return response.parsed
+            async with Agent(config) as agent:
+                response = await agent.chat(prompt)
+                data = await response.structured_output()
+                if data:
+                    return EntityResolutionResult(**data)
+                return None
         except Exception as e:
-            logger.error(f"LLM Resolution failed for {raw_name}: {e}")
+            logger.error(f"LLM Resolution failed for {raw_name} via AGY: {e}")
             return None
 
-    def process_unvalidated_companies(self):
+    async def process_unvalidated_companies_async(self):
         """
         Scans companies in the DB and runs them through the AI Entity Resolution pipeline.
         """
@@ -73,7 +66,7 @@ class ValidationAgent:
             if not record:
                 continue
                 
-            resolution = self.resolve_entity(company.company_name, record.raw_description or "")
+            resolution = await self.resolve_entity(company.company_name, record.raw_description or "")
             if not resolution:
                 continue
                 
@@ -91,3 +84,7 @@ class ValidationAgent:
             company.is_joint_venture = resolution.is_joint_venture
                 
             self.db.commit()
+
+    def process_unvalidated_companies(self):
+        """Wrapper for background task to run the async logic."""
+        asyncio.run(self.process_unvalidated_companies_async())

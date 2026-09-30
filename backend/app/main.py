@@ -199,11 +199,11 @@ class OutreachRequest(BaseModel):
     persona: str = "CTO"
 
 @app.post("/api/generate-outreach")
-def generate_outreach(request: OutreachRequest, db: Session = Depends(get_db)):
+async def generate_outreach(request: OutreachRequest, db: Session = Depends(get_db)):
     from .agents.outreach_agent import OutreachAgent
     
     agent = OutreachAgent(db)
-    draft = agent.generate_draft(request.company_id, request.service_line, request.persona)
+    draft = await agent.generate_draft(request.company_id, request.service_line, request.persona)
     
     if not draft:
         raise HTTPException(status_code=500, detail="Failed to generate draft. Is GEMINI_API_KEY set?")

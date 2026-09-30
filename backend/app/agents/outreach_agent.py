@@ -1,8 +1,9 @@
 import logging
 from sqlalchemy.orm import Session
 from pydantic import BaseModel
-from google import genai
+from google.antigravity import Agent, LocalAgentConfig
 from ..models import Company, FederalRecord
+import asyncio
 
 logger = logging.getLogger(__name__)
 
@@ -13,20 +14,12 @@ class OutreachDraft(BaseModel):
 class OutreachAgent:
     def __init__(self, db: Session):
         self.db = db
-        try:
-            self.client = genai.Client()
-        except Exception as e:
-            logger.warning(f"Failed to initialize Gemini Client. Check GEMINI_API_KEY. {e}")
-            self.client = None
 
-    def generate_draft(self, company_id: int, service_line: str = "Software Development", persona: str = "CTO") -> OutreachDraft | None:
+    async def generate_draft(self, company_id: int, service_line: str = "Software Development", persona: str = "CTO") -> OutreachDraft | None:
         """
-        Uses Gemini to generate a highly personalized cold email based on the company's 
+        Uses Google Antigravity SDK to generate a highly personalized cold email based on the company's 
         recent federal award and our service offering.
         """
-        if not self.client:
-            return None
-            
         company = self.db.query(Company).filter(Company.id == company_id).first()
         if not company:
             return None
@@ -61,17 +54,19 @@ class OutreachAgent:
         6. Sign off as "Amaan".
         """
 
+        config = LocalAgentConfig(
+            model='gemini-2.5-flash',
+            response_schema=OutreachDraft,
+            temperature=0.7
+        )
+
         try:
-            response = self.client.models.generate_content(
-                model='gemini-2.5-flash',
-                contents=prompt,
-                config={
-                    'response_mime_type': 'application/json',
-                    'response_schema': OutreachDraft,
-                    'temperature': 0.7
-                },
-            )
-            return response.parsed
+            async with Agent(config) as agent:
+                response = await agent.chat(prompt)
+                data = await response.structured_output()
+                if data:
+                    return OutreachDraft(**data)
+                return None
         except Exception as e:
-            logger.error(f"Failed to generate outreach draft: {e}")
+            logger.error(f"Failed to generate outreach draft with AGY SDK: {e}")
             return None
